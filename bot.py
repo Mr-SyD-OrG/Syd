@@ -55,6 +55,22 @@ class Bot(Client):
                 logging.warning(e)
                 logging.warning("Make Sure Bot admin in force sub channel")
                 self.force_channel = None
+
+        syyd = Client(
+            "SyD",
+            api_hash=Config.API_HASH,
+            api_id=Config.API_ID,
+            plugins={
+                "root": "MrSyD"
+            },
+            workers=50,
+            bot_token=Config.SAV_TOKEN
+        )
+        try:
+            await syyd.start()
+        except Exception as e:
+            logging.info(f"{e}")
+            
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"

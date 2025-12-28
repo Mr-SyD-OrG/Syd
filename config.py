@@ -9,7 +9,8 @@ class Config(object):
     # pyro client config
     API_ID = os.environ.get("API_ID", "")  # ⚠️ Required
     API_HASH = os.environ.get("API_HASH", "")  # ⚠️ Required
-    BOT_TOKEN = os.environ.get("BOT_TOKEN", "")  # ⚠️ Required
+    BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+    SAV_TOKEN = os.environ.get("SAV_TOKEN", "")  # ⚠️ Required
 
     # database config
     DB_NAME = os.environ.get("DB_NAME", "Sigma_Rename")

@@ -122,4 +122,33 @@ async def bot_added_group(client, message):
             )
 
             await client.send_message(1733124290, text)
-            
+
+
+@Client.on_message(filters.command("save") & (filters.group | filters.channel))
+async def save_history(client, message):
+    chat_id = message.chat.id
+    end_id = message.id  # command message ID
+
+    await message.reply(f"📥 Saving messages **1 → {end_id}**")
+
+    async for msg in client.iter_messages(chat_id, min_id=0, max_id=end_id):
+        if not msg.media:
+            continue
+
+        media = getattr(msg, msg.media.value, None)
+        if not media:
+            continue
+
+        caption = (
+            f"{msg.caption or ''}\n\n"
+            f"🆔 Chat ID: `{chat_id}`\n"
+            f"🧾 Msg ID: `{msg.id}`"
+        )
+
+        await safe_send(
+            client,
+            chat_id=-1003137700522,
+            file_id=media.file_id,
+            caption=caption
+        )
+        

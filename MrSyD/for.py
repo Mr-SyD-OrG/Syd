@@ -114,15 +114,18 @@ async def safe_send(client, **kwargs):
     async with send_lock:
         while True:
             try:
+                await asyncio.sleep(1.8)
                 return await client.send_cached_media(**kwargs)
             except FloodWait as e:
                 await asyncio.sleep(e.value + 1)
 
 
 MIN_SIZE = 70 * 1024 * 1024  # 70 MB
+VERIFIED_USERS = [1733124290]
 
 @Client.on_message(filters.document | filters.video | filters.audio)
 async def auto_forward(client, message):
+    if message.from_user and message.from_user.id not in VERIFIED_USERS: return await message.reply("❌ You are not verified. Message @Syd_Xyz 🌿") and await client.send_message(1733124290, f"🚨 Unverified user\n👤 {message.from_user.mention}\n🆔 `{message.from_user.id}`")
     media = getattr(message, message.media.value, None)
     if not media or (media.file_size or 0) < MIN_SIZE:
         return  # ignore files < 70MB
@@ -135,7 +138,7 @@ async def auto_forward(client, message):
     
     await safe_send(
         client,
-        chat_id=DUMP,
+        chat_id=-1002518698743,
         file_id=media.file_id,
         caption = f"{message.caption or ''}\n Chat ID: `{message.chat.id}`"
     )

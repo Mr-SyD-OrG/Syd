@@ -58,23 +58,28 @@ async def forward_messages(client, message):
     except Exception as e:
         await message.reply(f"❌ Error: {e}")
 
-async def safe_send(client, **kwargs):
-    while True:
-        try:
-            return await client.send_cached_media(**kwargs)
-        except FloodWait as e:
-            await asyncio.sleep(e.value + 1)
-          
 
-@Client.on_message(filters.document | filters.video | filters.audio)
-async def auto_frward(client, message):
+send_lock = asyncio.Semaphore(3)
+async def safe_send(client, **kwargs):
+    async with send_lock:
+        while True:
+            try:
+                return await client.send_cached_media(**kwargs)
+            except FloodWait as e:
+                await asyncio.sleep(e.value + 1)
+
+
+MIN_SIZE = 70 * 1024 * 1024  # 70 MB
+
+@app.on_message(filters.chat(SOURCE) & (filters.document | filters.video | filters.audio))
+async def auto_forward(client, message):
     media = getattr(message, message.media.value, None)
-    if not media:
-        return
+    if not media or (media.file_size or 0) < MIN_SIZE:
+        return  # ignore files < 70MB
 
     await safe_send(
         client,
-        chat_id=-1002518698743,
+        chat_id=DUMP,
         file_id=media.file_id,
         caption=message.caption or ""
     )

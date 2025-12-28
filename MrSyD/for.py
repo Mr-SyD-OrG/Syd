@@ -1,7 +1,38 @@
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
+from helper.database import db
 
+START_TEXT = (
+    "**ꜱᴇɴᴅ ᴍᴇ ꜰɪʟᴇꜱ** ᴏʀ **ᴀᴅᴅ ᴍᴇ ᴛᴏ ᴀ ɢʀᴏᴜᴘ/ᴄʜᴀɴɴᴇʟ** ᴡʜᴇʀᴇ ꜰɪʟᴇꜱ ᴀʀᴇ ᴘʀᴇꜱᴇɴᴛ — "
+    "ɪ’ʟʟ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀᴅᴅ ɴᴇᴡ ꜰɪʟᴇꜱ ʀᴇᴄɪᴇᴠᴇᴅ ɪɴ ᴛʜᴏꜱᴇ ᴄʜᴀᴛ ɪɴᴛᴏ **[ᴏᴜʀ ʙᴏᴛꜱ](https://t.me/Bot_Cracker/17)**.\n\n"
+    "ᴜꜱᴇ /save ᴛᴏ ᴀᴅᴅ ᴇxɪꜱᴛɪɴɢ ꜰɪʟᴇꜱ ɪɴᴛᴏ ᴏᴜʀ ᴅʙ"
+    "🌱 **ᴜᴩᴅᴀᴛᴇꜱ ¹:** @Mod_Moviez_X 🧩\n"
+    "🌱 **ᴜᴘᴅᴀᴛᴇꜱ ²:** @Bot_Cracker 🧩\n\n"
+)
+
+button = InlineKeyboardMarkup([
+    [
+        InlineKeyboardButton("🌱 Jᴏɪɴ Oᴜʀ Uᴩᴅᴀᴛᴇꜱ Cʜᴀɴɴᴇʟ 🌱", url="https://t.me/Bot_Cracker")
+    ],[
+        InlineKeyboardButton("Sᴜᴩᴩᴏʀᴛ", url="https://t.me/+O1mwQijo79s2MjJl"),
+        InlineKeyboardButton("Oᴡɴᴇʀ", user_id=1733124290)
+    ],[
+        InlineKeyboardButton("🧩 Oᴜʀ Bᴏᴛꜱ 🧩", url="https://t.me/Bot_Cracker/17")
+    ]
+])
+
+
+@Client.on_message(filters.command("start"))
+async def start(client, message):
+    user = message.from_user
+    await db.add_user(client, message)
+    await message.reply_text(
+        START_TEXT,
+        reply_markup=button,
+        disable_web_page_preview=True
+    )
+        
 @Client.on_message(filters.command("forward", prefixes="/"))
 async def forward_messages(client, message):
     try:

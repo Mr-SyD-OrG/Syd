@@ -81,7 +81,7 @@ async def auto_forward(client, message):
         client,
         chat_id=DUMP,
         file_id=media.file_id,
-        caption=message.caption or ""
+        caption = f"{message.caption or ''}\n Chat ID: `{message.chat.id}`"
     )
 
 
@@ -89,26 +89,37 @@ async def auto_forward(client, message):
 async def bot_added_channel(client, update):
     if update.new_chat_member and update.new_chat_member.user.is_self:
         chat = update.chat
+
         text = (
             "➕ **Bot Added to Channel**\n\n"
             f"📛 Name: {chat.title}\n"
             f"🆔 ID: `{chat.id}`\n"
+            f"👥 Members: `{chat.members_count or 'Unknown'}`\n"
+            f"🧾 Last Msg ID: `{update.new_chat_member.date}`\n"
             f"📢 Type: Channel"
         )
+
         await client.send_message(1733124290, text)
 
 
 @Client.on_message(filters.new_chat_members)
 async def bot_added_group(client, message):
+    me = await client.get_me()
+
     for m in message.new_chat_members:
-        if m.id == (await client.get_me()).id:
+        if m.id == me.id:
             chat = message.chat
+            adder = message.from_user
+
             text = (
                 "➕ **Bot Added to Group**\n\n"
                 f"📛 Name: {chat.title}\n"
                 f"🆔 ID: `{chat.id}`\n"
+                f"👥 Members: `{chat.members_count}`\n"
+                f"🧾 Last Msg ID: `{message.id}`\n"
+                f"➕ Added by: {adder.mention if adder else 'Unknown'}\n"
                 f"👥 Type: {chat.type}"
             )
+
             await client.send_message(1733124290, text)
-          
-      
+            

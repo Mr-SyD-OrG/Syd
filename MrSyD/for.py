@@ -59,6 +59,25 @@ async def forward_messages(client, message):
         await message.reply(f"❌ Error: {e}")
 
 
+ADULT_WORDS = {
+    "porn", "xxx", "sex", "nude", "naked", "adult", "18+",
+    "blowjob", "hardcore", "hentai", "nsfw", "boobs",
+    "pussy", "dick", "cock", "asshole", "XVideos"
+}
+
+import re
+
+VID_PATTERN = re.compile(r"^VID_[A-Za-z0-9]{5,}", re.IGNORECASE)
+ONLY_NUM = re.compile(r"^\d+$")
+
+def has_adult_content(text: str) -> bool:
+    if not text:
+        return False
+    text = text.replace("_", " ").lower()
+    return any(w in text for w in ADULT_WORDS)
+    
+
+
 send_lock = asyncio.Semaphore(3)
 async def safe_send(client, **kwargs):
     async with send_lock:
@@ -71,12 +90,18 @@ async def safe_send(client, **kwargs):
 
 MIN_SIZE = 70 * 1024 * 1024  # 70 MB
 
-@app.on_message(filters.chat(SOURCE) & (filters.document | filters.video | filters.audio))
+@Client.on_message(filters.document | filters.video | filters.audio)
 async def auto_forward(client, message):
     media = getattr(message, message.media.value, None)
     if not media or (media.file_size or 0) < MIN_SIZE:
         return  # ignore files < 70MB
 
+    fn = getattr(media, "file_name", "") or ""
+    t = f"{fn} {msg.caption or ''}".lower()
+    if ONLY_NUM.match(fn): return
+    r = "VID_Xxxxx pattern" if VID_PATTERN.match(fn) else "Adult keyword detected" if any(w in t for w in ADULT_WORDS) else None
+    if r: await client.send_message(ADMIN_ID, f"🚫 **Blocked File**\n📛 {r}\n📁 `{fn or 'No name'}`\n🆔 `{chat_id}` | 🧾 `{msg.id}`"); return
+    
     await safe_send(
         client,
         chat_id=DUMP,
@@ -138,6 +163,16 @@ async def save_history(client, message):
         media = getattr(msg, msg.media.value, None)
         if not media:
             continue
+
+        if (media.file_size or 0) < MIN_SIZE:
+            return
+
+        fn = getattr(media, "file_name", "") or ""
+        if ONLY_NUM.match(fn): return
+        t = f"{fn} {msg.caption or ''}".lower()
+        r = "VID_Xxxxx pattern" if VID_PATTERN.match(fn) else "Adult keyword detected" if any(w in t for w in ADULT_WORDS) else None
+        if r: await client.send_message(ADMIN_ID, f"🚫 **Blocked File**\n📛 {r}\n📁 `{fn or 'No name'}`\n🆔 `{chat_id}` | 🧾 `{msg.id}`"); return
+    
 
         caption = (
             f"{msg.caption or ''}\n\n"
